@@ -8,7 +8,8 @@ How to install
 
 2. use any terminal to go to the project root
     e.g cd c:/pathway/cartify-group3
-    cd core
+then:
+   cd core
 
 3. npm run dev
 
