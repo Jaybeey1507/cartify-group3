@@ -68,16 +68,6 @@ const userSchema = new mongoose.Schema({
     default: ''
   },
 
-  pendingBalance: {
-    type: Number,
-    default: 0
-  },
-
-   balance: {
-    type: Number,
-    default: 0
-  },
-
   createdAt: {
     type: Date,
     default: Date.now
