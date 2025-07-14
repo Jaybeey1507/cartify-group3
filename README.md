@@ -8,12 +8,13 @@ How to install
 
 2. use any terminal to go to the project root
     e.g cd c:/pathway/cartify-group3
+
 then:
    cd core
 
 3. npm run dev
 
 if you did everything well, you will see 
-connected to mongoDB a dn server running
+connected to mongoDB and server running
 
 Note: you cannot access the UI yet
