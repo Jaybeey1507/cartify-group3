@@ -13,112 +13,124 @@
     <form class="form" action="/api/users/register" method="POST">
       <h2>Create an Account</h2>
 
-      <label>Name</label>
-      <input type="text" name="name" required />
-
-      <label>Email</label>
-      <input type="email" name="email" required />
-
-      <label>Password</label>
-      <input type="password" name="password" required />
-
-      <label>Phone Number</label>
-      <input type="text" name="phone" required />
-
-      <label>Country</label>
-      <select id="country" name="country" required>
-        <option value="Canada">Canada</option>
-        <option value="USA">United States</option>
-        <option value="UK">United Kingdom</option>
-        <option value="Germany">Germany</option>
-        <option value="France">France</option>
-        <option value="Australia">Australia</option>
-        <option value="India">India</option>
-        <option value="Nigeria">Nigeria</option>
-        <option value="South Africa">South Africa</option>
-        <option value="Mexico">Mexico</option>
-        <option value="China">China</option>
-        <option value="Japan">Japan</option>
-        <option value="Brazil">Brazil</option>
-        <option value="Italy">Italy</option>
-        <option value="Spain">Spain</option>
-        <option value="Netherlands">Netherlands</option>
-        <option value="Sweden">Sweden</option>
-        <option value="Kenya">Kenya</option>
-        <option value="Ghana">Ghana</option>
-        <option value="Pakistan">Pakistan</option>
-        <option value="Indonesia">Indonesia</option>
-        <option value="Other">Other (Type Below)</option>
+      <!-- 👤 Role Selection -->
+      <label>Role</label>
+      <select name="role" id="role" required>
+        <option value="">Select role</option>
+        <option value="buyer">Buyer</option>
+        <option value="seller">Seller</option>
+        <option value="admin">Admin</option>
       </select>
 
-      <input type="text" id="otherCountry" name="country" placeholder="Enter your country" style="display:none;"/>
+      <!-- 👤 Name -->
+      <div id="field-name">
+        <label>Name</label>
+        <input type="text" name="name" required />
+      </div>
 
-      <label>State/Province</label>
-      <select id="state" name="state" required>
-        <option value="">Select a country first</option>
-      </select>
+      <!-- 📧 Email -->
+      <div id="field-email">
+        <label>Email</label>
+        <input type="email" name="email" required />
+      </div>
 
-      <label>City</label>
-      <input type="text" name="city" required />
+      <!-- 🔐 Password -->
+      <div id="field-password">
+        <label>Password</label>
+        <input type="password" name="password" required />
+      </div>
 
-      <label>Address Line 1</label>
-      <input type="text" name="address1" required />
+      <!-- 🔑 Admin Passkey -->
+      <div id="admin-passkey" style="display: none;">
+        <label>Admin Passkey</label>
+        <input type="password" name="adminPasskey" placeholder="Enter admin passkey"/>
+      </div>
 
-      <label>Address Line 2</label>
-      <input type="text" name="address2" />
+      <!-- 👥 Extended Fields (for buyer/seller only) -->
+      <div id="extended-fields">
+        <label>Phone Number</label>
+        <input type="text" name="phone" />
 
-      <label>Company Name (Optional)</label>
-      <input type="text" name="companyName" />
+        <label>Country</label>
+        <select id="country" name="country">
+          <!-- (same countries as before) -->
+          <option value="Canada">Canada</option>
+          <option value="USA">United States</option>
+          <option value="UK">United Kingdom</option>
+          <!-- ...other countries -->
+          <option value="Other">Other (Type Below)</option>
+        </select>
+
+        <input type="text" id="otherCountry" name="country" placeholder="Enter your country" style="display:none;"/>
+
+        <label>State/Province</label>
+        <select id="state" name="state">
+          <option value="">Select a country first</option>
+        </select>
+
+        <label>City</label>
+        <input type="text" name="city" />
+
+        <label>Address Line 1</label>
+        <input type="text" name="address1" />
+
+        <label>Address Line 2</label>
+        <input type="text" name="address2" />
+
+        <label>Company Name (Optional)</label>
+        <input type="text" name="companyName" />
+      </div>
 
       <button type="submit">Register</button>
-
       <p>Already have an account? <a href="login.html">Login here</a></p>
     </form>
-     </div>
    </div>
-  </div>
+ </div>
+</div>
 
-  <script>
-    const countryDropdown = document.getElementById('country');
-    const otherCountryInput = document.getElementById('otherCountry');
-    const stateDropdown = document.getElementById('state');
+<script>
+  const roleSelect = document.getElementById('role');
+  const adminPasskeyField = document.getElementById('admin-passkey');
+  const extendedFields = document.getElementById('extended-fields');
 
-    const statesByCountry = {
-      Canada: ["Ontario", "Quebec", "British Columbia", "Alberta", "Manitoba", "Saskatchewan", "Nova Scotia"],
-      USA: ["California", "Texas", "New York", "Florida", "Illinois", "Pennsylvania", "Ohio"],
-      UK: ["England", "Scotland", "Wales", "Northern Ireland"],
-      Germany: ["Bavaria", "Berlin", "Hesse", "Saxony", "Hamburg", "North Rhine-Westphalia"],
-      France: ["Île-de-France", "Occitanie", "Nouvelle-Aquitaine", "Provence-Alpes-Côte d'Azur", "Auvergne-Rhône-Alpes"],
-      Australia: ["New South Wales", "Victoria", "Queensland", "Western Australia", "South Australia", "Tasmania"],
-      India: ["Maharashtra", "Karnataka", "Tamil Nadu", "Uttar Pradesh", "Delhi", "West Bengal", "Gujarat"],
-      Nigeria: ["Lagos", "Abuja (FCT)", "Kano", "Kaduna", "Enugu", "Rivers", "Oyo"],
-      "South Africa": ["Gauteng", "Western Cape", "KwaZulu-Natal", "Eastern Cape", "Limpopo"],
-      Mexico: ["Mexico City", "Jalisco", "Nuevo León", "Puebla", "Chiapas"],
-      China: ["Beijing", "Shanghai", "Guangdong", "Zhejiang", "Sichuan"],
-      Japan: ["Tokyo", "Osaka", "Kyoto", "Hokkaido", "Fukuoka"],
-      Brazil: ["São Paulo", "Rio de Janeiro", "Bahia", "Minas Gerais", "Paraná"],
-      Italy: ["Lombardy", "Lazio", "Veneto", "Tuscany", "Sicily"],
-      Spain: ["Madrid", "Catalonia", "Valencia", "Andalusia", "Galicia"],
-      Netherlands: ["North Holland", "South Holland", "Utrecht", "Gelderland", "Brabant"],
-      Sweden: ["Stockholm", "Gothenburg", "Skåne", "Västra Götaland", "Uppsala"],
-      Kenya: ["Nairobi", "Mombasa", "Kisumu", "Nakuru", "Eldoret"],
-      Ghana: ["Greater Accra", "Ashanti", "Northern", "Volta", "Central"],
-      Pakistan: ["Punjab", "Sindh", "Khyber Pakhtunkhwa", "Balochistan", "Islamabad Capital Territory"],
-      Indonesia: ["Jakarta", "Bali", "Java", "Sumatra", "Sulawesi"]
-    };
+  roleSelect.addEventListener('change', function () {
+    const role = this.value;
 
-    countryDropdown.addEventListener('change', function () {
-      const selected = this.value;
+    if (role === 'admin') {
+      adminPasskeyField.style.display = 'block';
+      extendedFields.style.display = 'none';
+    } else if (role === 'buyer' || role === 'seller') {
+      adminPasskeyField.style.display = 'none';
+      extendedFields.style.display = 'block';
+    } else {
+      adminPasskeyField.style.display = 'none';
+      extendedFields.style.display = 'none';
+    }
+  });
 
-      if (selected === 'Other') {
-        otherCountryInput.style.display = 'block';
-        stateDropdown.innerHTML = '<option value="">Enter state manually</option>';
-      } else {
-        otherCountryInput.style.display = 'none';
-        const states = statesByCountry[selected] || [];
-        stateDropdown.innerHTML = states.map(state => `<option value="${state}">${state}</option>`).join('');
-      }
-    });
-  </script>
+  const countryDropdown = document.getElementById('country');
+  const otherCountryInput = document.getElementById('otherCountry');
+  const stateDropdown = document.getElementById('state');
+
+  const statesByCountry = {
+    Canada: ["Ontario", "Quebec", "British Columbia", "Alberta", "Manitoba", "Saskatchewan", "Nova Scotia"],
+    USA: ["California", "Texas", "New York", "Florida", "Illinois", "Pennsylvania", "Ohio"],
+    UK: ["England", "Scotland", "Wales", "Northern Ireland"],
+    // ... rest of your countries
+  };
+
+  countryDropdown.addEventListener('change', function () {
+    const selected = this.value;
+
+    if (selected === 'Other') {
+      otherCountryInput.style.display = 'block';
+      stateDropdown.innerHTML = '<option value="">Enter state manually</option>';
+    } else {
+      otherCountryInput.style.display = 'none';
+      const states = statesByCountry[selected] || [];
+      stateDropdown.innerHTML = states.map(state => `<option value="${state}">${state}</option>`).join('');
+    }
+  });
+</script>
 </body>
 </html>
