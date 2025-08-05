@@ -18,3 +18,19 @@ if you did everything well, you will see
 connected to mongoDB and server running
 
 Note: you cannot access the UI yet
+
+
+Features of Cartify":
+
+Add balance
+Make Orders
+Add items to cart
+Review Items
+Dispute Orders
+Manage products
+Manage orders
+Admin control
+RRole Base access control
+Seller Dashboard
+Admin Dashboard
+Manage profiles

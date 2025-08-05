@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Buyer Dashboard - Cartify</title>
+  <style>
+    /* [Preserve your original styles as-is] */
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #ffffff;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #ffffff;
+      padding: 15px 30px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    header h1 {
+      font-style: italic;
+      color: #007bff;
+      margin: 0;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      position: relative;
+    }
+
+    .profile-icon img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .profile-menu {
+      display: none;
+      position: absolute;
+      top: 45px;
+      right: 80px;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      z-index: 999;
+      min-width: 160px;
+    }
+
+    .profile-menu button {
+      display: block;
+      width: 100%;
+      padding: 10px 16px;
+      border: none;
+      background: none;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 40px auto;
+      padding: 25px;
+      background-color: #f8f9fa;
+      border-radius: 10px;
+    }
+
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid #ccc;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .tab-button {
+      padding: 10px 20px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-weight: bold;
+      border-bottom: 3px solid transparent;
+    }
+
+    .tab-button.active {
+      border-bottom: 3px solid #007bff;
+      color: #007bff;
+    }
+
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    .product-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .product-card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      width: calc(33.333% - 14px);
+      box-sizing: border-box;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+
+    .product-card img {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+
+    .product-card button {
+      margin-top: 8px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .cart-item {
+      background: #fff;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      border: 1px solid #ccc;
+    }
+
+    .order-item {
+      background: #fff;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      border-left: 5px solid #007bff;
+    }
+
+    .checkout-btn {
+      background-color: #28a745;
+      color: white;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 15px;
+    }
+
+    .category-filter {
+      margin-bottom: 20px;
+    }
+
+    #cartBadge {
+      background: red;
+      color: white;
+      border-radius: 50%;
+      padding: 2px 6px;
+      font-size: 0.75rem;
+      margin-left: 5px;
+      display: inline-block;
+    }
+
+  </style>
+</head>
+<body>
+
+<div id="toast" style="
+  display: none;
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #28a745;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  z-index: 10000;
+"></div>
+
+<header>
+  <h1>Cartify</h1>
+  <div class="header-right">
+  <div style="display: flex; align-items: center; gap: 10px; margin-right: 20px;">
+    <div id="balanceDisplay" style="font-weight: bold; color: #28a745;"></div>
+    <button onclick="openAddFundsModal()" style="padding: 6px 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+      Add Funds
+    </button>
+    <button offclick="openWithdrawFundsModal()" style="padding: 6px 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+      Withdraw Funds
+    </button>
+  </div>
+  <div class="profile-icon" onclick="toggleProfileMenu()">
+    <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Profile">
+  </div>
+  <div class="profile-menu" id="profileMenu">
+    <button onclick="editProfile()">Edit Profile</button>
+    <button onclick="logout()">Logout</button>
+  </div>
+</div>
+</header>
+
+<div class="container">
+  <div class="tabs">
+    <button class="tab-button active" onclick="showSection('browse')">🛍️ Browse Products</button>
+    <button class="tab-button" onclick="showSection('cart')">
+      🧺 View Cart <span id="cartBadge" style="display:none;"></span>
+    </button>
+    <button class="tab-button" onclick="showSection('orders')">📦 My Orders</button>
+    <button class="tab-button" onclick="showSection('disputes')">⚠️ Disputes</button>
+  </div>
+
+  <div id="browse" class="section active">
+    <h2>Browse Products</h2>
+    <select id="categoryFilter" class="category-filter" onchange="loadProducts()">
+      <option value="">All Categories</option>
+    </select>
+    <div style="margin-bottom: 15px;">
+      <input type="text" id="searchName" placeholder="Search by name" oninput="loadProducts()" />
+      <input type="number" id="minPrice" placeholder="Min Price" oninput="loadProducts()" />
+      <input type="number" id="maxPrice" placeholder="Max Price" oninput="loadProducts()" />
+      <input type="number" id="minStock" placeholder="Min Stock" oninput="loadProducts()" />
+      <input type="number" id="maxStock" placeholder="Max Stock" oninput="loadProducts()" />
+    </div>
+    <div class="product-list" id="productList"></div>
+  </div>
+
+  <div id="cart" class="section">
+    <h2>Your Cart</h2>
+    <div id="cartItems"></div>
+    <button class="checkout-btn" onclick="placeOrder()">Place Order</button>
+  </div>
+
+  <div id="orders" class="section">
+    <h2>Order History</h2>
+    <div id="orderList"></div>
+  </div>
+</div>
+
+  <div id="disputes" class="section">
+  <h2>Raise a Dispute</h2>
+  <label for="disputeOrderSelect">Select Order:</label>
+  <select id="disputeOrderSelect"></select>
+
+  <textarea id="disputeMessage" rows="4" placeholder="Explain your issue..." style="width: 100%; margin-top: 10px;"></textarea>
+
+  <div style="margin-top: 10px;">
+    <label>Upload Proof (optional):</label>
+    <input type="file" id="disputeFile" name="file" />
+  </div>
+
+  <button style="margin-top: 10px;" onclick="submitDispute()">Submit Dispute</button>
+  <div id="disputeStatus" style="margin-top: 10px;"></div>
+</div>
+   
+    <h3>Your Disputes</h3>
+  <div id="myDisputesList">
+    <p>Loading your disputes…</p>
+  </div>
+
+<!-- Edit Profile Modal -->
+<div id="profileModal" style="display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%); background:white; border:1px solid #ccc; padding:20px; z-index:1000;">
+  <h3>Edit Profile</h3>
+  <input id="editName" placeholder="Name"><br><br>
+  <input id="editEmail" placeholder="Email"><br><br>
+  <input id="editPassword" type="password" placeholder="New Password"><br><br>
+  <input id="editAddress" placeholder="Address"><br><br>
+  <button onclick="saveProfile()">Save</button>
+  <button onclick="document.getElementById('profileModal').style.display='none'">Cancel</button>
+</div>
+
+<script>
+
+function showToast(message) {
+  const t = document.getElementById("toast");
+  t.textContent = message;
+  t.style.display = "block";
+  setTimeout(() => { t.style.display = "none"; }, 3000);
+}
+
+  function toggleProfileMenu() {
+    const menu = document.getElementById("profileMenu");
+    menu.style.display = menu.style.display === "block" ? "none" : "block";
+  }
+
+  document.addEventListener("click", function (e) {
+    const icon = document.querySelector(".profile-icon");
+    const menu = document.getElementById("profileMenu");
+    if (!icon.contains(e.target) && !menu.contains(e.target)) {
+      menu.style.display = "none";
+    }
+  });
+
+  function showSection(id) {
+    document.querySelectorAll(".section").forEach(sec => sec.classList.remove("active"));
+    document.querySelectorAll(".tab-button").forEach(btn => btn.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+    document.querySelector(`[onclick="showSection('${id}')"]`).classList.add("active");
+
+    if (id === "browse") loadProducts();
+    if (id === "cart") loadCart();
+    if (id === "orders") loadOrders();
+  }
+
+  function logout() {
+    localStorage.clear();
+    window.location.href = "login.html";
+  }
+
+  async function loadUserBalance() {
+  try {
+    const res = await fetch("/api/users/me", {
+      headers: {
+        "Authorization": "Bearer " + localStorage.getItem("token")
+      }
+    });
+    const user = await res.json();
+    document.getElementById("balanceDisplay").textContent = `Balance: $${(user.balance || 0).toFixed(2)}`;
+  } catch (err) {
+    console.error("Failed to load balance:", err);
+  }
+}
+
+  async function loadProducts() {
+  const res = await fetch("/api/products");
+  const products = await res.json();
+  const list = document.getElementById("productList");
+
+  const filter = document.getElementById("categoryFilter");
+  const selectedCategory = filter.value;
+
+  const searchName = document.getElementById("searchName")?.value?.toLowerCase() || "";
+  const minPrice = parseFloat(document.getElementById("minPrice")?.value) || 0;
+  const maxPrice = parseFloat(document.getElementById("maxPrice")?.value) || Infinity;
+  const minStock = parseInt(document.getElementById("minStock")?.value) || 0;
+  const maxStock = parseInt(document.getElementById("maxStock")?.value) || Infinity;
+
+  // Dynamic categories
+  const categories = [...new Set(products.map(p => p.category))];
+  filter.innerHTML = '<option value="">All Categories</option>';
+  categories.forEach(cat => {
+    const opt = document.createElement("option");
+    opt.value = cat;
+    opt.textContent = cat;
+    if (cat === selectedCategory) opt.selected = true;
+    filter.appendChild(opt);
+  });
+
+  list.innerHTML = "";
+
+  products
+    .filter(p => (!selectedCategory || p.category === selectedCategory))
+    .filter(p => p.name?.toLowerCase().includes(searchName))
+    .filter(p => p.price >= minPrice && p.price <= maxPrice)
+    .filter(p => p.stock >= minStock && p.stock <= maxStock)
+    .forEach(p => {
+      const div = document.createElement("div");
+      div.className = "product-card";
+      div.innerHTML = `
+        <img src="${p.image || 'https://placehold.co/300x150?text=No+Image'}" />
+        <h4>${p.name}</h4>
+        <p>$${p.price}</p>
+        <p><strong>Stock:</strong> ${p.stock}</p>
+        <p><strong>Category:</strong> ${p.category}</p>
+        <p>${p.description || ""}</p>
+        <button onclick='addToCart("${p._id}")'>Add to Cart</button>
+        <button onclick='openCommentModal("${p._id}")'>Add Comment</button>
+      `;
+      list.appendChild(div);
+      loadReviews(p._id, div);
+    });
+}
+
+  function updateCartBadge(count) {
+  const badge = document.getElementById("cartBadge");
+  badge.textContent = count;
+  badge.style.display = count > 0 ? "inline" : "none";
+}
+
+  async function addToCart(productId) {
+  const res = await fetch("/api/carts/add", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + localStorage.getItem("token")
+    },
+    body: JSON.stringify({ productId, quantity: 1 })
+  });
+
+  if (res.ok) {
+    alert("Added to cart!");
+    loadCart();
+  } else {
+    const err = await res.json();
+    alert("Error: " + err.error);
+  }
+}
+
+  function loadCart() {
+    const container = document.getElementById("cartItems");
+    if (cart.length === 0) return container.innerHTML = "<p>Your cart is empty.</p>";
+
+    container.innerHTML = "";
+    cart.forEach((item, idx) => {
+      const div = document.createElement("div");
+      div.className = "cart-item";
+      div.innerHTML = `
+        <p><strong>${item.name}</strong> - $${item.price} x ${item.quantity}</p>
+        <button onclick="removeFromCart(${idx})">Remove</button>
+      `;
+      container.appendChild(div);
+    });
+  }
+
+  async function removeFromCart(productId) {
+  const res = await fetch(`/api/carts/remove/${productId}`, {
+    method: "DELETE",
+    headers: {
+      "Authorization": "Bearer " + localStorage.getItem("token")
+    }
+  });
+
+  if (res.ok) {
+    alert("Removed!");
+    loadCart();
+  } else {
+    const err = await res.json();
+    alert("Error: " + err.error);
+  }
+}
+
+  async function placeOrder() {
+  const shippingAddress = prompt("Enter shipping address:");
+  if (!shippingAddress) {
+    alert("Shipping address required.");
+    return;
+  }
+
+  const res = await fetch("/api/orders/place", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + localStorage.getItem("token")
+    },
+    body: JSON.stringify({
+      shippingAddress,
+      paymentMethod: "balance" // ✅ FIXED HERE
+    })
+  });
+
+  if (res.ok) {
+    alert("Order placed!");
+    loadCart();     // refresh cart
+    loadOrders();   // refresh orders
+    showSection("orders");
+  } else {
+    const err = await res.json();
+    alert("Order failed: " + err.error);
+  }
+}
+
+  async function loadCart() {
+  const res = await fetch("/api/carts", {
+    headers: {
+      "Authorization": "Bearer " + localStorage.getItem("token")
+    }
+  });
+
+  const cartData = await res.json();
+  const items = cartData.items || [];
+  const container = document.getElementById("cartItems");
+
+  if (!items.length) {
+    container.innerHTML = "<p>Your cart is empty.</p>";
+    updateCartBadge(0);
+    return;
+  }
+
+  container.innerHTML = "";
+  let totalCount = 0;
+
+  items.forEach(item => {
+    totalCount += item.quantity;
+    const div = document.createElement("div");
+    div.className = "cart-item";
+    div.innerHTML = `
+      <p>
+        <strong>${item.product.name}</strong> - $${item.product.price} x ${item.quantity}
+        <button onclick="updateQuantity('${item.product._id}', ${item.quantity - 1})">−</button>
+        <button onclick="updateQuantity('${item.product._id}', ${item.quantity + 1})">+</button>
+      </p>
+      <button onclick="removeFromCart('${item.product._id}')">Remove</button>
+    `;
+    container.appendChild(div);
+  });
+
+  updateCartBadge(totalCount);
+}
+
+async function updateQuantity(productId, newQuantity) {
+  if (newQuantity < 1) return; // Prevent zero or negative quantity
+
+  const res = await fetch(`/api/carts/update/${productId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + localStorage.getItem("token")
+    },
+    body: JSON.stringify({ quantity: newQuantity })
+  });
+
+  if (res.ok) {
+    loadCart();
+  } else {
+    const err = await res.json();
+    alert("Update failed: " + err.error);
+  }
+}
+
+  async function editProfile() {
+  try {
+    const res = await fetch("/api/users/me", {
+      headers: {
+        "Authorization": "Bearer " + localStorage.getItem("token")
+      }
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to fetch user data");
+    }
+
+    const user = await res.json();
+    document.getElementById("editName").value = user.name || "";
+    document.getElementById("editEmail").value = user.email || "";
+    document.getElementById("editAddress").value = user.address1 || "";
+
+    document.getElementById("profileModal").style.display = "block";
+  } catch (err) {
+    console.error("Profile fetch error:", err);
+    alert("Unable to load profile. Please log in again.");
+  }
+}
+
+  async function saveProfile() {
+  const payload = {
+    name: document.getElementById("editName").value,
+    email: document.getElementById("editEmail").value,
+    password: document.getElementById("editPassword").value,
+    address1: document.getElementById("editAddress").value
+  };
+
+  const res = await fetch("/api/users/me", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + localStorage.getItem("token") // ✅ Add this line
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const result = await res.json();
+  alert(result.name ? "Profile updated!" : result.error);
+  document.getElementById("profileModal").style.display = "none";
+}
+
+  let currentCommentProductId = null;
+
+function openCommentModal(productId) {
+  currentCommentProductId = productId;
+  document.getElementById("commentModal").style.display = "block";
+}
+
+function closeCommentModal() {
+  currentCommentProductId = null;
+  document.getElementById("commentModal").style.display = "none";
+}
+
+async function submitComment() {
+  const comment = document.getElementById("commentText").value.trim();
+  const rating = document.getElementById("ratingSelect").value;
+
+  if (!comment || !rating) return alert("Please enter a comment and select a rating.");
+
+  const res = await fetch("/api/reviews", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + localStorage.getItem("token")
+    },
+    body: JSON.stringify({
+      productId: currentCommentProductId,
+      comment,
+      rating: parseInt(rating)
+    })
+  });
+
+  if (res.ok) {
+    alert("Comment posted!");
+    closeCommentModal();
+  } else {
+    const err = await res.json();
+    alert("Error: " + err.error);
+  }
+}
+
+  async function loadReviews(productId, containerDiv) {
+  try {
+    const resUser = await fetch("/api/users/me", {
+      headers: {
+        "Authorization": "Bearer " + localStorage.getItem("token")
+      }
+    });
+    const currentUser = await resUser.json();
+
+    const res = await fetch(`/api/reviews/product/${productId}`);
+    const reviews = await res.json();
+    if (!Array.isArray(reviews) || reviews.length === 0) return;
+
+    const wrapper = document.createElement("div");
+    const toggleBtn = document.createElement("button");
+    toggleBtn.textContent = "View Comments";
+    toggleBtn.style.marginTop = "10px";
+    toggleBtn.style.background = "#6c757d";
+    toggleBtn.style.color = "#fff";
+    toggleBtn.style.border = "none";
+    toggleBtn.style.padding = "6px 10px";
+    toggleBtn.style.borderRadius = "5px";
+    toggleBtn.style.cursor = "pointer";
+
+    const reviewBox = document.createElement("div");
+    reviewBox.style.display = "none";
+    reviewBox.style.maxHeight = "200px";
+    reviewBox.style.overflowY = "auto";
+    reviewBox.style.border = "1px solid #ccc";
+    reviewBox.style.padding = "10px";
+    reviewBox.style.marginTop = "10px";
+    reviewBox.style.borderRadius = "5px";
+    reviewBox.style.backgroundColor = "#f9f9f9";
+
+    toggleBtn.onclick = () => {
+      reviewBox.style.display = reviewBox.style.display === "none" ? "block" : "none";
+      toggleBtn.textContent = reviewBox.style.display === "none" ? "View Comments" : "Hide Comments";
+    };
+
+    reviews.forEach(r => {
+      const reviewEl = document.createElement("div");
+      reviewEl.style.borderBottom = "1px solid #eee";
+      reviewEl.style.paddingBottom = "6px";
+      reviewEl.style.marginBottom = "6px";
+      reviewEl.innerHTML = `<strong>${r.user.name}:</strong> ${r.comment} (${r.rating} ⭐)`;
+
+      // ✅ Edit/Delete buttons only for current user's own review
+      if (r.user._id === currentUser._id) {
+        const btnGroup = document.createElement("span");
+
+        const editBtn = document.createElement("button");
+        editBtn.textContent = "Edit";
+        editBtn.style.marginLeft = "10px";
+        editBtn.style.background = "#ffc107";
+        editBtn.style.border = "none";
+        editBtn.style.padding = "4px 8px";
+        editBtn.style.borderRadius = "3px";
+        editBtn.style.cursor = "pointer";
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "Delete";
+        deleteBtn.style.marginLeft = "6px";
+        deleteBtn.style.background = "#dc3545";
+        deleteBtn.style.color = "#fff";
+        deleteBtn.style.border = "none";
+        deleteBtn.style.padding = "4px 8px";
+        deleteBtn.style.borderRadius = "3px";
+        deleteBtn.style.cursor = "pointer";
+
+        editBtn.onclick = () => {
+          const newComment = prompt("Edit your comment:", r.comment);
+          const newRating = prompt("Edit your rating (1–5):", r.rating);
+          if (!newComment || !newRating) return;
+
+          fetch(`/api/reviews/${r._id}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer " + localStorage.getItem("token")
+            },
+            body: JSON.stringify({
+              comment: newComment,
+              rating: parseInt(newRating)
+            })
+          }).then(async res => {
+            const out = await res.json();
+            if (res.ok) {
+              alert("Review updated!");
+              loadProducts(); // refresh the UI
+            } else {
+              alert("Error: " + out.error);
+            }
+          });
+        };
+
+        deleteBtn.onclick = () => {
+          if (!confirm("Are you sure you want to delete your review?")) return;
+          fetch(`/api/reviews/${r._id}`, {
+            method: "DELETE",
+            headers: {
+              "Authorization": "Bearer " + localStorage.getItem("token")
+            }
+          }).then(async res => {
+            const out = await res.json();
+            if (res.ok) {
+              alert("Review deleted.");
+              loadProducts(); // refresh the UI
+            } else {
+              alert("Error: " + out.error);
+            }
+          });
+        };
+
+        btnGroup.appendChild(editBtn);
+        btnGroup.appendChild(deleteBtn);
+        reviewEl.appendChild(btnGroup);
+      }
+
+      reviewBox.appendChild(reviewEl);
+    });
+
+    wrapper.appendChild(toggleBtn);
+    wrapper.appendChild(reviewBox);
+    containerDiv.appendChild(wrapper);
+  } catch (err) {
+    console.error("Failed to load reviews:", err);
+  }
+}
+
+  async function loadOrders() {
+  const res = await fetch('/api/orders/user/' + localStorage.getItem('userId'), {
+    headers: {
+      "Authorization": "Bearer " + localStorage.getItem("token")
+    }
+  });
+
+  const orders = await res.json();
+  const container = document.getElementById("orderList");
+  container.innerHTML = "";
+
+  if (!Array.isArray(orders) || orders.length === 0) {
+    container.innerHTML = "<p>No orders yet.</p>";
+    return;
+  }
+
+  orders.forEach(order => {
+  const div = document.createElement("div");
+  div.className = "order-item";
+
+  const itemList = Array.isArray(order.products)
+    ? order.products.map(i => `<li>${i.quantity} x ${i.name} ($${(i.price || 0).toFixed(2)})</li>`).join('')
+    : '<li>No items found.</li>';
+
+  const shipping = order.shippingAddress?.trim() || 'Not Provided';
+
+  // Cancel + Edit buttons (only allow edit if status is pending)
+  const editButton = order.status === "pending"
+    ? `<button onclick="editOrder('${order._id}')">Edit</button>`
+    : '';
+
+  const cancelButton = order.status === 'pending'
+    ? `<button onclick="cancelOrder('${order._id}')">Cancel</button>`
+    : '';
+
+  div.innerHTML = `
+    <p><strong>Status:</strong> ${order.status}</p>
+    <p><strong>Total:</strong> $${order.totalAmount ? order.totalAmount.toFixed(2) : '0.00'}</p>
+    <p><strong>Shipping:</strong> ${shipping}</p><div id="browse"
+    <ul>${itemList}</ul>
+    ${editButton} ${cancelButton}
+  `;
+
+  container.appendChild(div);
+});
+}
+
+let currentEditingOrderId = null;
+
+function editOrder(orderId) {
+  currentEditingOrderId = orderId;
+  document.getElementById("editOrderModal").style.display = "block";
+}
+
+function closeEditModal() {
+  currentEditingOrderId = null;
+  document.getElementById("editOrderModal").style.display = "none";
+}
+
+async function submitOrderEdit() {
+  const newAddress = document.getElementById("editShippingAddress").value.trim();
+  if (!newAddress) return alert("Shipping address cannot be empty.");
+
+  const res = await fetch(`/api/orders/${currentEditingOrderId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + localStorage.getItem("token")
+    },
+    body: JSON.stringify({ shippingAddress: newAddress })
+  });
+
+  const data = await res.json();
+  if (res.ok) {
+    alert("Shipping address updated!");
+    closeEditModal();
+    loadOrders();
+  } else {
+    alert("Error: " + data.error);
+  }
+}
+
+  async function cancelOrder(orderId) {
+  if (!confirm("Are you sure you want to cancel this order?")) return;
+
+  const res = await fetch(`/api/orders/${orderId}/status`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + localStorage.getItem("token")
+    },
+    body: JSON.stringify({ status: "cancelled" })
+  });
+
+  if (res.ok) {
+    alert("Order cancelled.");
+    loadOrders();
+  } else {
+    const err = await res.json();
+    alert("Error: " + err.error);
+  }
+}
+
+function openAddFundsModal() {
+  document.getElementById("addFundsModal").style.display = "block";
+}
+
+async function submitAddFunds() {
+  const amount = parseFloat(document.getElementById("fundAmount").value);
+  const method = document.getElementById("paymentMethod").value;
+
+  if (!amount || amount <= 0) return alert("Enter a valid amount.");
+
+  if (method === "coming-soon") {
+    alert("Credit/Debit method coming soon.");
+    return;
+  }
+
+  const res = await fetch("/api/users/add-balance", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + localStorage.getItem("token")
+    },
+    body: JSON.stringify({ amount })
+  });
+
+  const data = await res.json();
+  if (res.ok) {
+    alert("Funds added successfully!");
+    document.getElementById("addFundsModal").style.display = "none";
+    loadUserBalance(); // refresh balance
+  } else {
+    alert("Error: " + data.error);
+  }
+}
+
+async function loadDisputeOrders() {
+  try {
+    const res = await fetch("/api/orders/user/" + localStorage.getItem("userId"), {
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem("token")
+      }
+    });
+
+    const orders = await res.json();
+    const select = document.getElementById("disputeOrderSelect");
+    select.innerHTML = '<option value="">Select an order</option>';
+
+    orders
+      .filter(order => order.status !== 'cancelled')
+      .forEach(order => {
+        const productNames = order.products.map(p => p.name || p.product?.name || 'Unnamed').join(', ');
+        const option = document.createElement("option");
+        option.value = order._id;
+        option.textContent = `${productNames} - ${order.status}`;
+        select.appendChild(option);
+      });
+
+  } catch (err) {
+    console.error("Error loading orders for dispute:", err);
+  }
+}
+
+async function submitDispute() {
+  const orderId = document.getElementById("disputeOrderSelect").value;
+  const message = document.getElementById("disputeMessage").value;
+  const fileInput = document.getElementById("disputeFile");
+  const statusDiv = document.getElementById("disputeStatus");
+
+  if (!orderId || !message.trim()) {
+    return alert("Please select an order and write a message.");
+  }
+
+  const formData = new FormData();
+  formData.append("orderId", orderId);
+  formData.append("message", message);
+  if (fileInput.files[0]) {
+    // ← use "file" to match upload.single('file')
+    formData.append("file", fileInput.files[0]);
+  }
+
+  try {
+    const res = await fetch("/api/disputes", {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem("token")
+      },
+      body: formData
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      statusDiv.textContent = "✅ Dispute submitted successfully.";
+      document.getElementById("disputeMessage").value = "";
+      document.getElementById("disputeFile").value = "";
+    } else {
+      statusDiv.textContent = "❌ Failed: " + data.error;
+    }
+  } catch (err) {
+    statusDiv.textContent = "❌ Error submitting dispute.";
+    console.error(err);
+  }
+}
+
+async function loadBuyerDisputes() {
+  const container = document.getElementById("myDisputesList");
+  container.innerHTML = "<p>Loading your disputes…</p>";
+
+  let disputes;
+  try {
+    const res = await fetch("/api/disputes/mine", {
+      headers: { Authorization: "Bearer " + localStorage.getItem("token") }
+    });
+    disputes = await res.json();
+  } catch (err) {
+    console.error(err);
+    return container.innerHTML = "<p>Error loading disputes.</p>";
+  }
+
+  if (!disputes.length) {
+    container.innerHTML = "<p>You have not raised any disputes.</p>";
+    return;
+  }
+
+  // build each dispute card
+  container.innerHTML = disputes.map(d => {
+    // 1) build a flat history array
+    const history = [];
+
+    // original buyer message
+    history.push({
+      author: "buyer",
+      message: d.message,
+      file: d.file,
+      createdAt: d.createdAt
+    });
+
+    // legacy seller response
+    if (d.response) {
+      history.push({
+        author: "seller",
+        message: d.response,
+        file: d.sellerFile,
+        createdAt: d.updatedAt || d.createdAt
+      });
+    }
+
+    // threaded replies
+    (d.replies || []).forEach(r => history.push(r));
+
+    // 2) render the history HTML
+    const historyHtml = history.map(r => `
+      <div style="margin:8px 0; padding:8px; border:1px solid #ddd; border-radius:4px;">
+        <p><strong>${r.author === "buyer" ? "You" : "Seller"}:</strong> ${r.message}</p>
+        ${r.file ? `<p><a href="${r.file}" target="_blank">📎 Attachment</a></p>` : ""}
+        <small>${new Date(r.createdAt).toLocaleString()}</small>
+      </div>
+    `).join("");
+
+    // 3) decide if we show the follow-up box:
+    const last = history[history.length - 1];
+    const hasSellerReply = history.some(h => h.author === "seller");
+    const showForm = hasSellerReply && !d.resolved;
+
+    const followUpForm = showForm
+      ? `
+        <textarea id="buyerResponse-${d._id}" rows="3" placeholder="Your follow-up"></textarea>
+        <input type="file" id="buyerFile-${d._id}" /><br>
+        <button onclick="submitBuyerReply('${d._id}')">Send Follow-up</button>
+        `
+      : "";
+
+    // 4) assemble the dispute card
+    return `
+      <div style="border:1px solid #ccc; padding:12px; margin-bottom:16px; border-radius:6px;">
+        <p><strong>Order ID:</strong> ${d.order._id || d.order}</p>
+        <p><strong>Status:</strong>
+           ${d.resolved
+             ? "✅ Resolved"
+             : last.author === "seller"
+               ? "🔔 Seller replied"
+               : "⌛ Waiting for seller"
+           }
+        </p>
+        ${historyHtml}
+        ${followUpForm}
+      </div>
+    `;
+  }).join("");
+}
+
+async function submitBuyerReply(disputeId) {
+  const token = localStorage.getItem("token");
+  const textarea = document.getElementById(`buyerResponse-${disputeId}`);
+  const fileInput = document.getElementById(`buyerFile-${disputeId}`);
+
+  if (!textarea) {
+    return alert("Reply box not found!");
+  }
+  const message = textarea.value.trim();
+  if (!message) {
+    return alert("Please enter a reply before sending.");
+  }
+
+  try {
+    const form = new FormData();
+    form.append("message", message);
+    if (fileInput && fileInput.files[0]) {
+      form.append("file", fileInput.files[0]);
+    }
+
+    const res = await fetch(`/api/disputes/${disputeId}/buyer-reply`, {
+      method: "PUT",
+      headers: { Authorization: `Bearer ${token}` },
+      body: form
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || "Failed to send reply");
+    }
+
+    alert("✅ Your follow-up has been sent.");
+    textarea.value = "";
+    if (fileInput) fileInput.value = "";
+    loadBuyerDisputes();  // refresh
+  } catch (err) {
+    console.error("Reply error:", err);
+    alert("❌ " + err.message);
+  }
+}
+
+async function submitBuyerFollowup(disputeId) {
+  const textarea = document.getElementById(`buyerMsg-${disputeId}`);
+  const fileIn   = document.getElementById(`buyerFile-${disputeId}`);
+  const message  = textarea.value.trim();
+  if (!message) return alert("Please enter a follow-up before sending.");
+
+  const form = new FormData();
+  form.append("message", message);
+  if (fileIn.files[0]) form.append("file", fileIn.files[0]);
+
+  try {
+    const res = await fetch(`/api/disputes/${disputeId}/buyer-reply`, {
+      method: "PUT",
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      body: form
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || "Failed to send follow-up");
+    }
+    showToast("✅ Follow-up sent");
+    loadBuyerDisputes();  // refresh the thread
+  } catch (err) {
+    console.error("Reply error:", err);
+    alert("❌ " + err.message);
+  }
+}
+
+  async function loadOrdersForDispute() {
+    const res = await fetch("/api/orders/user/" + localStorage.getItem("userId"), {
+      headers: { "Authorization": "Bearer " + localStorage.getItem("token") }
+    });
+    const data = await res.json();
+
+    const select = document.getElementById("disputeOrderSelect");
+    select.innerHTML = '<option value="">Select an order</option>';
+
+    data.forEach(order => {
+      if (order.status !== "cancelled") {
+        const productNames = order.products.map(p => p.name || p.product?.name || 'Unnamed').join(', ');
+        select.innerHTML += `<option value="${order._id}">${productNames} - ${order.status}</option>`;
+      }
+    });
+  }
+
+// 🚀 Load disputes when user clicks tab
+document.querySelector("button[onclick=\"showSection('disputes')\"]")
+  .addEventListener("click", () => {
+    loadDisputeOrders();
+    loadBuyerDisputes();
+  });
+
+  loadProducts();
+  loadUserBalance();
+   loadOrdersForDispute();
+</script>
+
+ <!-- Comment Modal -->
+<div id="commentModal" style="display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%); background:white; padding:20px; border:1px solid #ccc; border-radius:10px; z-index:9999;">
+  <h3>Post a Comment</h3>
+  <textarea id="commentText" rows="4" style="width:100%"></textarea><br/><br/>
+  <label for="ratingSelect"><strong>Rating:</strong></label>
+  <select id="ratingSelect">
+   <option value="">Select</option>
+   <option value="1">1 ⭐</option>
+   <option value="2">2 ⭐⭐</option>
+   <option value="3">3 ⭐⭐⭐</option>
+   <option value="4">4 ⭐⭐⭐⭐</option>
+   <option value="5">5 ⭐⭐⭐⭐⭐</option>
+ </select><br/><br/>
+ <button onclick="submitComment()">Submit</button>
+
+  <button onclick="closeCommentModal()">Cancel</button>
+</div>
+
+<!-- Edit Order Modal -->
+<div id="editOrderModal" style="display:none; position:fixed; top:25%; left:50%; transform:translateX(-50%); background:white; padding:20px; border:1px solid #ccc; border-radius:10px; z-index:1000;">
+  <h3>Edit Order</h3>
+  <input id="editShippingAddress" placeholder="New Shipping Address" style="width:100%"><br/><br/>
+  <button onclick="submitOrderEdit()">Save</button>
+  <button onclick="closeEditModal()">Cancel</button>
+</div>
+
+<div id="addFundsModal" style="display:none; position:fixed; top:25%; left:50%; transform:translateX(-50%); background:white; border:1px solid #ccc; border-radius:10px; padding:20px; z-index:9999;">
+  <h3>Add Funds</h3>
+  <input type="number" id="fundAmount" placeholder="Amount to Add" style="width: 100%; padding: 8px;"><br/><br/>
+  <select id="paymentMethod" style="width: 100%; padding: 8px;">
+    <option value="coming-soon">Credit/Debit Card (Coming Soon)</option>
+    <option value="other">Other Method</option>
+  </select><br/><br/>
+  <button onclick="submitAddFunds()">Add</button>
+  <button onclick="document.getElementById('addFundsModal').style.display='none'">Cancel</button>
+</div>
+
+</body>
+</html>

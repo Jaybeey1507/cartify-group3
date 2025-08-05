@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard | Cartify</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f6f8;
+      margin: 0;
+      padding: 20px;
+    }
+    h1, h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .section-tabs {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+    .section-tabs button {
+      padding: 10px 20px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .section {
+      display: none;
+    }
+    .active {
+      display: block;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: #fff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 12px;
+      border: 1px solid #ddd;
+    }
+    th {
+      background-color: #f7f7f7;
+    }
+    button.action {
+      padding: 5px 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .edit-btn { background-color: #17a2b8; color: white; }
+    .delete-btn { background-color: #dc3545; color: white; }
+    .chart-container {
+      display: flex;
+      gap: 40px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 30px;
+    }
+     .chart-container { height: 300px; }
+#barChart, #pieChart {
+  border: 1px solid #ccc;
+  background: #fff;
+  box-sizing: border-box;
+}
+  canvas {
+    background-color: #fff;
+    border-radius: 8px;
+  }
+  #barChart, #pieChart {
+    border: 1px solid #ccc;
+    background: #fff;
+    box-sizing: border-box;
+  }
+    .dispute-card, .payment-card {
+      background-color: #fff;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+    }
+    .resolve-btn, .refund-btn {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .refund-btn {
+      background-color: #ffc107;
+      color: black;
+    }
+    .file-preview {
+      margin-top: 8px;
+      font-size: 0.9em;
+    }
+    .stats-cards {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin: 30px 0;
+    }
+    .card {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      text-align: center;
+      width: 200px;
+    }
+    .card h3 {
+      margin-bottom: 10px;
+      font-size: 18px;
+    }
+    .card p {
+      font-size: 24px;
+      font-weight: bold;
+      color: #007bff;
+    }
+    header {
+      padding: 20px;
+    }
+    /* Logo in blue, italic, top‐left */
+    header h1 {
+      color: #007bff;
+      font-style: italic;
+      margin: 0;
+      float: left;
+    }
+    /* Clear the float so content below centers correctly */
+    .clearfix::after {
+      content: "";
+      display: table;
+      clear: both;
+    }
+    /* Centered welcome message */
+    .welcome-message {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #333;
+      margin: 60px 0 40px;
+      line-height: 1.3;
+    }
+
+  </style>
+</head>
+<body>
+<header class="clearfix">
+    <h1>Cartify</h1>
+  </header>
+   <div style="text-align: right; margin-bottom: 10px;">
+    <button onclick="logout()" style="background-color:#dc3545; color:white; padding: 8px 14px; border:none; border-radius:5px; cursor:pointer;">Logout</button>
+  </div>
+  <div class="welcome-message">
+    <h2>
+      Welcome, Admin, to your Cartify Admin Dashboard.<br/>
+      Here you can settle disputes, manage users, view trends, and have centralized control.
+    </h2>
+  </div>
+
+  <!-- ✏️ Edit User Modal -->
+<div id="editUserModal" style="
+  display: none;
+  position: fixed;
+  top: 20%; left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  z-index: 10000;
+  width: 300px;
+">
+  <h3>Edit User</h3>
+  <div style="display:flex; flex-direction:column; gap:10px;">
+    <input id="editUserName"    placeholder="Name" />
+    <input id="editUserEmail"   placeholder="Email" />
+    <input id="editUserRole"    placeholder="Role" />
+    <input id="editUserPhone"   placeholder="Phone" />
+    <input id="editUserCountry" placeholder="Country" />
+    <input id="editUserState"   placeholder="State" />
+    <input id="editUserCity"    placeholder="City" />
+    <input id="editUserAddr1"   placeholder="Address Line 1" />
+    <input id="editUserAddr2"   placeholder="Address Line 2" />
+    <div style="display:flex; justify-content:flex-end; gap:10px;">
+      <button onclick="submitEditUser()">Save</button>
+      <button onclick="closeEditUserModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+  
+  <div class="stats-cards">
+  <div class="card" id="totalUsersCard">
+    <h3>Total Users</h3>
+    <p id="totalUsers">0</p>
+  </div>
+  <div class="card" id="adminCountCard">
+    <h3>Admin Count</h3>
+    <p id="adminCount">0</p>
+  </div>
+</div>
+
+  <div class="section-tabs">
+    <button onclick="switchSection('usersSection')">Users</button>
+    <button onclick="switchSection('chartsSection')">Sales Charts</button>
+    <button onclick="switchSection('disputesSection')">Disputes</button>
+    <button onclick="switchSection('paymentsSection')">Payments</button>
+  </div>
+
+  <!-- 👥 USERS TABLE -->
+  <div id="usersSection" class="section active">
+    <h2>Registered Users</h2>
+    <table id="usersTable">
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Name</th>
+          <th>Country</th>
+          <th>State</th>
+          <th>Address Line 1</th>
+          <th>Address Line 2</th>
+          <th>Phone</th>
+          <th>Role</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- 📊 SALES CHARTS -->
+  <div id="chartsSection" class="section">
+    <h2>Sales Trends</h2>
+    <div class="chart-container">
+      <canvas id="barChart" width="400" height="250"></canvas>
+      <canvas id="pieChart" width="400" height="250"></canvas>
+    </div>
+  </div>
+
+  <!-- 🧾 DISPUTES -->
+  <div id="disputesSection" class="section">
+    <h2>Customer Disputes</h2>
+    <div id="disputesList">Loading disputes...</div>
+  </div>
+
+  <!-- 💰 PAYMENTS -->
+  <div id="paymentsSection" class="section">
+    <h2>Pending Transactions</h2>
+    <div id="paymentsList">Loading payments...</div>
+  </div>
+
+  <script>
+    function switchSection(sectionId) {
+      document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+      document.getElementById(sectionId).classList.add('active');
+    }
+
+  async function loadUsers() {
+  const res = await fetch('/api/users', {
+    headers: { Authorization: 'Bearer ' + localStorage.getItem('token') }
+  });
+  const users = await res.json();
+  window.adminUsers = users;    // ← store for later
+
+  const tbody = document.querySelector('#usersTable tbody');
+  tbody.innerHTML = '';
+  users
+    .filter(u => u.role !== 'admin')
+    .forEach(user => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${user.email}</td>
+          <td>${user.name || '-'}</td>
+          <td>${user.country || '-'}</td>
+          <td>${user.state || '-'}</td>
+          <td>${user.address1 || '-'}</td>
+          <td>${user.address2 || '-'}</td>
+          <td>${user.phone || '-'}</td>
+          <td>${user.role}</td>
+          <td>
+            <button class="action edit-btn" onclick="editUser('${user._id}')">Edit</button>
+            <button class="action delete-btn" onclick="deleteUser('${user._id}')">Delete</button>
+          </td>
+        </tr>
+      `;
+    });
+}
+
+    async function loadCharts() {
+
+  // 1️⃣ Fetch stats
+  const res = await fetch('/api/admin/stats', {
+    headers: { Authorization: 'Bearer ' + localStorage.getItem('token') }
+  });
+  const stats = await res.json();
+
+  // 2️⃣ Update stat cards
+  document.getElementById('totalUsers').innerText = stats.totalUsers;
+  document.getElementById('adminCount').innerText = stats.adminCount;
+
+  // 3️⃣ Prepare pie data
+  const categoryCounts = {};
+  stats.topProducts.forEach(p => {
+    const cat = p.category || 'Uncategorized';
+    categoryCounts[cat] = (categoryCounts[cat] || 0) + p.quantity;
+  });
+  const pieLabels = Object.keys(categoryCounts);
+  const pieValues = Object.values(categoryCounts);
+
+  // 4️⃣ BAR CHART
+  const barCtx = document.getElementById('barChart').getContext('2d');
+  new Chart(barCtx, {
+    type: 'bar',
+    data: {
+      labels: stats.topProducts.map(p => p.name),
+      datasets: [{
+        label: 'Units Sold',
+        data: stats.topProducts.map(p => p.quantity),
+        backgroundColor: '#007bff',   // solid blue
+        borderColor:   '#0056b3',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          ticks: { color: '#333' },
+          grid:  { color: 'rgba(0,0,0,0.05)' }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: { color: '#333' },
+          grid:  { color: 'rgba(0,0,0,0.05)' }
+        }
+      },
+      plugins: {
+        legend: { labels: { color: '#333' } }
+      }
+    }
+  });
+
+  // 5️⃣ PIE CHART
+  const pieCtx = document.getElementById('pieChart').getContext('2d');
+  const sliceColors = ['#28a745','#ffc107','#dc3545','#17a2b8','#6f42c1'];
+  new Chart(pieCtx, {
+    type: 'pie',
+    data: {
+      labels: pieLabels,
+      datasets: [{
+        data: pieValues,
+        backgroundColor: pieLabels.map((_,i) => sliceColors[i % sliceColors.length]),
+        borderColor: '#fff',
+        borderWidth: 2
+      }]
+    },
+    options: {
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#333' } }
+      }
+    }
+  });
+}
+
+async function loadDisputes() {
+  const res = await fetch('/api/disputes/all', {
+    headers: { Authorization: localStorage.getItem('token') }
+  });
+  const disputes = await res.json();
+  const container = document.getElementById('disputesList');
+  container.innerHTML = '';
+
+  if (!Array.isArray(disputes) || disputes.length === 0) {
+    container.innerHTML = '<p>No disputes found.</p>';
+    return;
+  }
+
+  disputes.forEach(d => {
+    // 1️⃣ Build and sort the full history from replies
+    const history = (d.replies || []).slice()
+      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+    // 2️⃣ Render each entry
+    const historyHtml = history.map(r => `
+      <div style="margin:8px 0; padding:8px; border:1px solid #ddd; border-radius:4px;">
+        <p>
+          <strong>${r.author === 'buyer' ? 'Buyer' : 'Seller'}:</strong>
+          ${r.message}
+        </p>
+        ${r.file
+          ? `<p class="file-preview">
+               <a href="${r.file}" target="_blank">📎 Attachment</a>
+             </p>`
+          : ''
+        }
+        <small>${new Date(r.createdAt).toLocaleString()}</small>
+      </div>
+    `).join('');
+
+    // 3️⃣ Show “Mark as Resolved” if not yet resolved
+    const statusHtml = d.resolved
+      ? `<p><strong>Status:</strong> Resolved ✅</p>`
+      : `<button class="resolve-btn"
+                 onclick="resolveDispute('${d._id}')">
+           Mark as Resolved
+         </button>`;
+
+    // 4️⃣ Assemble the card
+    container.innerHTML += `
+      <div class="dispute-card">
+        <p><strong>Buyer:</strong> ${d.buyer?.email || 'N/A'}</p>
+        <p><strong>Seller:</strong> ${d.seller?.email || 'N/A'}</p>
+        ${historyHtml}
+        ${statusHtml}
+      </div>
+    `;
+  });
+}
+
+// Your existing resolveDispute() can stay the same:
+async function resolveDispute(disputeId) {
+  await fetch(`/api/disputes/${disputeId}/resolve`, {
+    method: 'PUT',
+    headers: { Authorization: localStorage.getItem('token') }
+  });
+  loadDisputes();
+}
+
+    async function loadPayments() {
+  const res = await fetch('/api/orders/all', {
+    headers: { Authorization: 'Bearer ' + localStorage.getItem('token') }
+  });
+
+  const orders = await res.json();
+
+  // Show any balance‐paid order that isn't already released/refunded
+  const pending = orders.filter(o => 
+    (o.paymentMethod === 'balance' || o.paymentMethod == null) &&
+    !['released', 'refunded'].includes(o.status)
+  );
+
+  const list = document.getElementById('paymentsList');
+  list.innerHTML = '';
+
+  if (pending.length === 0) {
+    list.innerHTML = '<p>No transactions awaiting admin action.</p>';
+    return;
+  }
+
+  pending.forEach(o => {
+    list.innerHTML += `
+      <div class="payment-card">
+        <p><strong>Order:</strong> ${o._id}</p>
+        <p><strong>Status:</strong> ${o.status}</p>
+        <p><strong>Buyer:</strong> ${o.user?.email || 'N/A'}</p>
+        <p><strong>Total:</strong> $${o.totalAmount}</p>
+        <button class="resolve-btn" onclick="releasePayment('${o._id}')">Release to Seller</button>
+        <button class="refund-btn" onclick="refundBuyer('${o._id}')">Refund Buyer</button>
+      </div>
+    `;
+  });
+}
+
+    // 🖊 Edit a user (prompts for new values then calls PUT /api/admin/users/:id)
+async function editUser(userId) {
+  // Prompt the admin for updated fields
+  const newName    = prompt("Enter new name:");
+  const newEmail   = prompt("Enter new email:");
+  const newRole    = prompt("Enter new role (user/seller/admin):");
+  const newPhone   = prompt("Enter new phone:");
+  const newCountry = prompt("Enter new country:");
+  const newState   = prompt("Enter new state:");
+  const newCity    = prompt("Enter new city:");
+  const newAddr1   = prompt("Enter new address line 1:");
+  const newAddr2   = prompt("Enter new address line 2:");
+
+  if (!newName || !newEmail) {
+    return alert("Name and email are required to update.");
+  }
+
+  try {
+    const res = await fetch(`/api/admin/users/${userId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + localStorage.getItem("token")
+      },
+      body: JSON.stringify({
+        name: newName,
+        email: newEmail,
+        role: newRole,
+        phone: newPhone,
+        country: newCountry,
+        state: newState,
+        city: newCity,
+        address1: newAddr1,
+        address2: newAddr2
+      })
+    });
+    const updated = await res.json();
+    if (!res.ok) throw new Error(updated.error || "Update failed");
+    alert("✅ User updated!");
+    loadUsers();
+  } catch (err) {
+    console.error("Edit failed:", err);
+    alert("❌ " + err.message);
+  }
+}
+
+// 🗑 Delete a user (calls DELETE /api/admin/users/:id)
+async function deleteUser(userId) {
+  if (!confirm("Are you sure you want to delete this user?")) return;
+  try {
+    const res = await fetch(`/api/admin/users/${userId}`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": "Bearer " + localStorage.getItem("token")
+      }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Delete failed");
+    alert("🗑️ " + data.message);
+    loadUsers();
+  } catch (err) {
+    console.error("Delete failed:", err);
+    alert("❌ " + err.message);
+  }
+}
+
+let currentEditUserId = null;
+
+function editUser(userId) {
+  const user = (window.adminUsers || []).find(u => u._id === userId);
+  if (!user) return alert('User not found in memory.');
+
+  currentEditUserId = userId;
+  document.getElementById('editUserName').value    = user.name || '';
+  document.getElementById('editUserEmail').value   = user.email || '';
+  document.getElementById('editUserRole').value    = user.role || '';
+  document.getElementById('editUserPhone').value   = user.phone || '';
+  document.getElementById('editUserCountry').value = user.country || '';
+  document.getElementById('editUserState').value   = user.state || '';
+  document.getElementById('editUserCity').value    = user.city || '';
+  document.getElementById('editUserAddr1').value   = user.address1 || '';
+  document.getElementById('editUserAddr2').value   = user.address2 || '';
+
+  document.getElementById('editUserModal').style.display = 'block';
+}
+
+function closeEditUserModal() {
+  document.getElementById('editUserModal').style.display = 'none';
+}
+
+async function submitEditUser() {
+  if (!currentEditUserId) return;
+
+  const payload = {
+    name:    document.getElementById('editUserName').value,
+    email:   document.getElementById('editUserEmail').value,
+    role:    document.getElementById('editUserRole').value,
+    phone:   document.getElementById('editUserPhone').value,
+    country: document.getElementById('editUserCountry').value,
+    state:   document.getElementById('editUserState').value,
+    city:    document.getElementById('editUserCity').value,
+    address1:document.getElementById('editUserAddr1').value,
+    address2:document.getElementById('editUserAddr2').value
+  };
+
+  try {
+    const res = await fetch(`/api/admin/users/${currentEditUserId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + localStorage.getItem("token")
+      },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Update failed");
+    alert('✅ User updated');
+    closeEditUserModal();
+    loadUsers();
+  } catch (err) {
+    console.error('Edit failed:', err);
+    alert('❌ ' + err.message);
+  }
+}
+
+  async function releasePayment(orderId) {
+  // 1️⃣ Ask for confirmation
+  if (!confirm("Are you sure you want to release payment to the seller for order " + orderId + "?")) {
+    return; // user canceled
+  }
+
+  // 2️⃣ Proceed if they clicked “OK”
+  const res = await fetch(`/api/orders/${orderId}/payout-status`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + localStorage.getItem('token')
+    },
+    body: JSON.stringify({ status: 'released' })
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    return alert('❌ Release failed: ' + (err.error || res.status));
+  }
+
+  alert('✅ Payment released to seller!');
+  loadPayments();  
+}
+
+async function refundBuyer(orderId) {
+  // 1️⃣ Ask for confirmation
+  if (!confirm("Are you sure you want to refund the buyer for order " + orderId + "?")) {
+    return; // user canceled
+  }
+
+  // 2️⃣ Proceed if they clicked “OK”
+  const res = await fetch(`/api/orders/${orderId}/payout-status`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + localStorage.getItem('token')
+    },
+    body: JSON.stringify({ status: 'refunded' })
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    return alert('❌ Refund failed: ' + (err.error || res.status));
+  }
+
+  alert('✅ Buyer has been refunded!');
+  loadPayments();
+}
+  
+    function logout() {
+      localStorage.removeItem('token');
+      window.location.href = 'login.html';
+    }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        loadUsers();
+        loadCharts();  // This triggers the /api/admin/stats request
+        loadDisputes();
+        loadPayments();
+      });
+
+
+  </script>
+</body>
+</html>

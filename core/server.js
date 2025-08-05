@@ -9,6 +9,8 @@ import cartRoutes from '../routes/cart.js';
 import orderRoutes from '../routes/order.js';
 import reviewRoutes from '../routes/review.js';
 import adminRoutes from '../routes/adminRoutes.js';
+import disputeRoutes from '../routes/dispute.js';
+
 
 dotenv.config();
 
@@ -27,6 +29,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/carts', cartRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/disputes', disputeRoutes);
 
 app.get('/', (req, res) => {
   res.send('🛒 Cartify API is running!');

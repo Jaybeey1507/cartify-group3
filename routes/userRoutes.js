@@ -111,6 +111,13 @@ router.get('/me', authenticateToken, async (req, res) => {
     const user = await User.findById(req.user.userId).select('-password');
     if (!user) return res.status(404).json({ error: 'User not found' });
 
+    // Ensure balance fields always exist
+    const response = {
+      ...user.toObject(),
+      balance: user.balance || 0,
+      pendingBalance: user.pendingBalance || 0
+    };
+
     res.json(response);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -153,6 +160,28 @@ router.get('/role/:role', authenticateToken, async (req, res) => {
   try {
     const users = await User.find({ role: req.params.role }).select('-password');
     res.json(users);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/users/add-balance
+router.post('/add-balance', authenticateToken, async (req, res) => {
+  const { amount } = req.body;
+  const userId = req.user.userId;
+
+  if (!amount || amount <= 0) {
+    return res.status(400).json({ error: 'Invalid balance amount.' });
+  }
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    user.balance = (user.balance || 0) + amount;
+    await user.save();
+
+    res.json({ success: true, newBalance: user.balance });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
