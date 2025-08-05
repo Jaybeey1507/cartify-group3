@@ -10,7 +10,7 @@
 <div class="scroll-container">
  <div class="form-box">
   <div class="container">
-    <form class="form" action="/api/users/register" method="POST">
+    <form class="form" id="registerForm">
       <h2>Create an Account</h2>
 
       <!-- 👤 Role Selection -->
@@ -46,22 +46,20 @@
         <input type="password" name="adminPasskey" placeholder="Enter admin passkey"/>
       </div>
 
-      <!-- 👥 Extended Fields (for buyer/seller only) -->
+      <!-- 👥 Extended Fields -->
       <div id="extended-fields">
         <label>Phone Number</label>
         <input type="text" name="phone" />
 
         <label>Country</label>
         <select id="country" name="country">
-          <!-- (same countries as before) -->
           <option value="Canada">Canada</option>
           <option value="USA">United States</option>
           <option value="UK">United Kingdom</option>
-          <!-- ...other countries -->
           <option value="Other">Other (Type Below)</option>
         </select>
 
-        <input type="text" id="otherCountry" name="country" placeholder="Enter your country" style="display:none;"/>
+        <input type="text" id="otherCountry" placeholder="Enter your country" style="display:none;" />
 
         <label>State/Province</label>
         <select id="state" name="state">
@@ -80,6 +78,9 @@
         <label>Company Name (Optional)</label>
         <input type="text" name="companyName" />
       </div>
+
+      <!-- ✅ Success/Error Message -->
+      <div id="message" style="margin: 10px 0; text-align: center;"></div>
 
       <button type="submit">Register</button>
       <p>Already have an account? <a href="login.html">Login here</a></p>
@@ -116,7 +117,6 @@
     Canada: ["Ontario", "Quebec", "British Columbia", "Alberta", "Manitoba", "Saskatchewan", "Nova Scotia"],
     USA: ["California", "Texas", "New York", "Florida", "Illinois", "Pennsylvania", "Ohio"],
     UK: ["England", "Scotland", "Wales", "Northern Ireland"],
-    // ... rest of your countries
   };
 
   countryDropdown.addEventListener('change', function () {
@@ -129,6 +129,60 @@
       otherCountryInput.style.display = 'none';
       const states = statesByCountry[selected] || [];
       stateDropdown.innerHTML = states.map(state => `<option value="${state}">${state}</option>`).join('');
+    }
+  });
+
+  // ✅ Replace country if "Other" is selected
+  document.querySelector('form').addEventListener('submit', function () {
+    const selected = countryDropdown.value;
+    const otherCountryVal = otherCountryInput.value.trim();
+
+    if (selected === 'Other' && otherCountryVal) {
+      const option = document.createElement('option');
+      option.value = otherCountryVal;
+      option.text = otherCountryVal;
+      option.selected = true;
+
+      const otherOption = countryDropdown.querySelector('option[value="Other"]');
+      if (otherOption) {
+        countryDropdown.removeChild(otherOption);
+      }
+
+      countryDropdown.appendChild(option);
+    }
+  });
+
+  // ✅ Handle submission via fetch()
+  document.getElementById("registerForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const form = e.target;
+    const formData = new FormData(form);
+    const messageBox = document.getElementById("message");
+
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+      const res = await fetch("/api/users/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+
+      const result = await res.json();
+
+      if (res.ok) {
+        messageBox.style.color = "green";
+        messageBox.innerHTML = `✅ Registration successful! <a href="login.html">Log in</a>`;
+        form.reset();
+      } else {
+        messageBox.style.color = "red";
+        messageBox.textContent = "❌ " + (result.error || "Registration failed.");
+      }
+    } catch (err) {
+      console.error(err);
+      messageBox.style.color = "red";
+      messageBox.textContent = "❌ Server error. Please try again.";
     }
   });
 </script>
