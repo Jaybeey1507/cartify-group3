@@ -90,3 +90,12 @@ button:hover {
 .form a:hover {
   text-decoration: underline;
 }
+
+/* Page-specific widths */
+.form-box.login-box {
+  max-width: 400px;  /* 👈 Narrower width for login form */
+}
+
+.form-box.register-box {
+  max-width: 650px;  /* 👈 Wider width for register form */
+}
